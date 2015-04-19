@@ -1,0 +1,20 @@
+{
+  "name": "persnoo",
+  "version": "0.0.1",
+  "authors": [
+    "Anirudh Sylendranath"
+  ],
+  "description": "Search through your saved, liked, commented and hidden reddit posts",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "public/lib"
+  ],
+  "dependencies": {
+    "angular-material": "~0.8.3"
+  }
+}
