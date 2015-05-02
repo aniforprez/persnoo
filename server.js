@@ -22,19 +22,25 @@ var reddit = new snoocore({
 		duration: 'permanent',
 		key: 'R1WLYGcNacErUg',
 		secret: 'zn-I4l6AS-aTjF8oXBhR_2ykNjk',
-		redirectUri: 'http://localhost:8080'
+		redirectUri: 'http://localhost:8080/auth/callback',
+		scope: ['history']
 	}
 });
 
 ////////////
 // Routes //
 ////////////
-router.get('', function(req, res) {
-	res.json({ data: 'Something' });
+app.get('/', function(req, res) {
+	res.send('Something');
+});
+app.get('/login', function(req, res) {
+	res.redirect(reddit.getAuthUrl());
+	console.log(reddit.getAuthUrl());
+});
+app.get('/auth/callback', function(req, res) {
+	res.redirect('/');
 });
 
-// Register the routes
-app.use('', router);
 ///////////////////////////
 // Start the application //
 ///////////////////////////
