@@ -70,6 +70,9 @@ app.get('/auth/callback', function(req, res) {
 	var error = req.query.error;
 	var state = req.query.state;
 	var authCode = req.query.code;
+	if(error) {
+		res.send({ error: error });
+	}
 	reddit.auth(authCode).then(function(refreshToken) {
 		req.session.oauth = { refreshToken: refreshToken };
 		res.redirect('/');
