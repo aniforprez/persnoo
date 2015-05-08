@@ -63,6 +63,7 @@ app.get('/logout', function(req, res) {
 	else {
 		reddit.deauth(req.session.oauth.refreshToken).then(function() {
 			req.session.destroy();
+			res.redirect('/');
 		});
 	}
 });
