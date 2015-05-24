@@ -83,7 +83,7 @@ app.get('/auth/callback', function(req, res) {
 		res.send({ responseStatus: 'error', error: err });
 	});
 });
-app.get('/api/data', function(res, req) {
+app.get('/api/data', function(req, res) {
 	if(req.session && req.session.oauth) {
 		res.send({ responseStatus: 'success' });
 	}

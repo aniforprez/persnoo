@@ -27,6 +27,13 @@ describe('unauthenticated requests', function() {
 			.end(done);
 	});
 
+	it('should reject when logging out (you\'re not logged in DUH)', function(done) {
+		request
+			.get('/api/logout')
+			.expect(401)
+			.end(done);
+	});
+
 	it('/api/login redirect to reddit oauth', function(done) {
 		var fired = false;
 		this.timeout(0);
