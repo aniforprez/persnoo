@@ -3,6 +3,9 @@ var should = require('chai').should();
 var Nightmare = require('nightmare');
 var fs = require('fs');
 
+var loginUrl = '';
+var Cookies = '';
+
 describe('the server', function() {
 	it('should be running', function(done) {
 		request
@@ -17,7 +20,14 @@ describe('the server', function() {
 });
 
 describe('unauthenticated requests', function() {
-	it('/login redirect to reddit oauth', function(done) {
+	it('should reject when requesting data', function(done) {
+		request
+			.get('/api/data')
+			.expect(401)
+			.end(done);
+	});
+
+	it('/api/login redirect to reddit oauth', function(done) {
 		var fired = false;
 		this.timeout(0);
 		new Nightmare({ weak: false, loadImages: false })
@@ -25,7 +35,7 @@ describe('unauthenticated requests', function() {
 				url.should.have.string('reddit.com');
 				fired = true;
 			})
-			.goto('http://localhost:8080/login')
+			.goto('http://localhost:8080/api/login')
 			.run(function() {
 				fired.should.be.true;
 				done();
@@ -35,20 +45,14 @@ describe('unauthenticated requests', function() {
 
 describe('authentication', function() {
 	var browser;
-	before(function() {
+	before(function(done) {
+		this.timeout(0);
 		browser = new Nightmare({
 			weak: false,
-			loadImages: false,
-			cookiesFile: 'app/tests/cookie.txt'
+			loadImages: false
 		});
-		fs.unlinkSync('app/tests/cookie.txt');
-	});
-	
-	it('should successfully login', function(done) {
-		var fired = false;
-		this.timeout(0);
 		browser
-			.goto('http://localhost:8080/login')
+			.goto('http://localhost:8080/api/login')
 			.wait()
 			.type('input#user_login', 'delicioustest')
 			.type('input#passwd_login', 'testiculartests')
@@ -57,24 +61,31 @@ describe('authentication', function() {
 			.click('input[type="submit"][value="Allow"]')
 			.wait()
 			.url(function(url) {
-				url.should.be.equal('http://localhost:8080/');
+				loginUrl = url.replace('http://localhost:8080', '');
 			})
 			.run(function(err, nightmare) {
-				if (fs.existsSync('app/tests/cookie.txt')) {
-					var cookies = fs.readFileSync('app/tests/cookie.txt', { encoding: 'utf8' }).split('\r\n');
-					console.log(cookies);
-					cookies.forEach(function (cookie) {
-						var detail = cookie.split('\t'),
-						newCookie = {
-							'name':   detail[5],
-							'value':  detail[6],
-							'domain': detail[0],
-							'path':   detail[2]
-						};
-						console.log(newCookie);
-					});
-				}
-				should.not.exist(err);
+				done();
+			});
+	});
+	
+	it('should successfully login with a redirect url', function(done) {
+		this.timeout(0);
+		request
+			.get(loginUrl)
+			.expect(200)
+			.end(function(err, res) {
+				Cookies = res.headers['set-cookie'].pop().split(';')[0];
+				res.body.responseStatus.should.equal('success');
+				done();
+			});
+	});
+	it('should fetch data when logged in', function(done) {
+		var req = request.get('/api/data');
+		req.cookies = Cookies;
+		req.set('Accept','application/json')
+			.expect('Content-Type', /json/)
+			.expect(200)
+			.end(function (err, res) {
 				done();
 			});
 	});

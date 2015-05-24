@@ -19,8 +19,7 @@
     "lodash": "^3.3.1",
     "mongoose": "^3.8.24",
     "morgan": "^1.5.1",
-    "snoocore": "^3.0.0",
-    "supertest-session": "0.0.7"
+    "snoocore": "^3.0.0"
   },
   "devDependencies": {
     "chai": "^2.2.0",
@@ -38,6 +37,7 @@
     "load-grunt-tasks": "^3.1.0",
     "mocha": "^2.1.0",
     "nightmare": "^1.8.1",
-    "supertest": "^0.15.0"
+    "supertest": "^0.15.0",
+    "supertest-session": "0.0.7"
   }
 }

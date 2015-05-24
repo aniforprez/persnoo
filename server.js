@@ -3,6 +3,7 @@
 //////////////////
 var express = require('express');
 var bodyParser = require('body-parser');
+var cookieParser = require('cookie-parser');
 var session = require('express-session');
 var MongoStore = require('connect-mongo')(session);
 var morgan = require('morgan');
@@ -24,6 +25,7 @@ app.use(session({
 	saveUninitialized: true
 }));
 app.use(bodyParser.json());
+app.use(cookieParser());
 app.use(morgan('dev'));
 var reddit = new snoocore({
 	userAgent: '/u/aniforprez snoocore@0.0.0',
@@ -41,30 +43,30 @@ var reddit = new snoocore({
 // Routes //
 ////////////
 app.get('/', function(req, res) {
-	if(req.session.oauth) {
+	if(req.session && req.session.oauth) {
 		res.send('Logged In!');
 	}
 	else {
 		res.send('Something');
 	}
 });
-app.get('/login', function(req, res) {
-	if(req.session.oauth) {
-		res.redirect('/');
+app.get('/api/login', function(req, res) {
+	if(req.session && req.session.oauth) {
+		res.send({ responseStatus: 'error', error: 'Already Logged In' });
 	}
 	else {
 		res.redirect(reddit.getAuthUrl());
 	}
 });
-app.get('/logout', function(req, res) {
-	if(!req.session.oauth) {
-		res.status(401).send();
-	}
-	else {
+app.get('/api/logout', function(req, res) {
+	if(req.session && req.session.oauth) {
 		reddit.deauth(req.session.oauth.refreshToken).then(function() {
 			req.session.destroy();
-			res.redirect('/');
+			res.send({ responseStatus: 'success' });
 		});
+	}
+	else {
+		res.sendStatus(401);
 	}
 });
 app.get('/auth/callback', function(req, res) {
@@ -72,12 +74,22 @@ app.get('/auth/callback', function(req, res) {
 	var state = req.query.state;
 	var authCode = req.query.code;
 	if(error) {
-		res.send({ error: error });
+		res.send({ responseStatus: 'error', error: error });
 	}
 	reddit.auth(authCode).then(function(refreshToken) {
 		req.session.oauth = { refreshToken: refreshToken };
-		res.redirect('/');
+		res.send({ responseStatus: 'success' });
+	}).catch(function(err) {
+		res.send({ responseStatus: 'error', error: err });
 	});
+});
+app.get('/api/data', function(res, req) {
+	if(req.session && req.session.oauth) {
+		res.send({ responseStatus: 'success' });
+	}
+	else {
+		res.sendStatus(401);
+	}
 });
 
 ///////////////////////////
