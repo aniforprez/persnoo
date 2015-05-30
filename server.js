@@ -3,7 +3,6 @@
 //////////////////
 var express = require('express');
 var bodyParser = require('body-parser');
-var cookieParser = require('cookie-parser');
 var session = require('express-session');
 var MongoStore = require('connect-mongo')(session);
 var morgan = require('morgan');
@@ -25,7 +24,6 @@ app.use(session({
 	saveUninitialized: true
 }));
 app.use(bodyParser.json());
-app.use(cookieParser());
 app.use(morgan('dev'));
 var reddit = new snoocore({
 	userAgent: '/u/aniforprez snoocore@0.0.0',
