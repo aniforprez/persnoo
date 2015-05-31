@@ -7,3 +7,6 @@ env:
   - NODE_ENV=travis
 services:
   - mongodb
+cache:
+  directories:
+    - node_modules
