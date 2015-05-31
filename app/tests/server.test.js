@@ -94,10 +94,10 @@ describe('authentication', function() {
 		var req = request.get('/api/saved');
 		req.cookies = Cookies;
 		req.set('Accept','application/json')
-			.expect('Content-Type', /json/)
 			.expect(200)
+			.expect('Content-Type', /json/)
 			.end(function (err, res) {
-				if(err)
+				if(err) 
 					return done(err);
 				done();
 			});

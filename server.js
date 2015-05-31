@@ -97,17 +97,17 @@ app.get('/auth/callback', function(req, res) {
 	var error = req.query.error;
 	var state = req.query.state;
 	var authCode = req.query.code;
+	var token = '';
 	if(error) {
 		res.status(500).send({ responseStatus: 'error', error: error });
 	}
 	reddit.auth(authCode).then(function(refreshToken) {
-		reddit('api/v1/me').get().then(function(result) {
-			req.session.oauth = { refreshToken: refreshToken };
-			req.session.user = result;
-			res.send({ responseStatus: 'success' });
-		}).catch(function(err) {
-			res.status(500).send({ responseStatus: 'error', error: err });
-		});
+		token = refreshToken;
+		return reddit('/api/v1/me').get();
+	}).then(function(result) {
+		req.session.oauth = { refreshToken: token };
+		req.session.user = result;
+		res.send({ responseStatus: 'success' });
 	}).catch(function(err) {
 		res.status(500).send({ responseStatus: 'error', error: err });
 	});
