@@ -7,6 +7,7 @@ var session = require('express-session');
 var MongoStore = require('connect-mongo')(session);
 var morgan = require('morgan');
 var snoocore = require('snoocore');
+var when = require('when');
 
 var app = express();
 var router = express.Router();
@@ -50,7 +51,7 @@ app.get('/', function(req, res) {
 });
 app.get('/api/login', function(req, res) {
 	if(req.session && req.session.oauth) {
-		res.send({ responseStatus: 'error', error: 'Already Logged In' });
+		res.status(500).send({ responseStatus: 'error', error: 'Already Logged In' });
 	}
 	else {
 		res.redirect(reddit.getAuthUrl());
@@ -67,27 +68,49 @@ app.get('/api/logout', function(req, res) {
 		res.sendStatus(401);
 	}
 });
-app.get('/auth/callback', function(req, res) {
-	var error = req.query.error;
-	var state = req.query.state;
-	var authCode = req.query.code;
-	if(error) {
-		res.send({ responseStatus: 'error', error: error });
-	}
-	reddit.auth(authCode).then(function(refreshToken) {
-		req.session.oauth = { refreshToken: refreshToken };
-		res.send({ responseStatus: 'success' });
-	}).catch(function(err) {
-		res.send({ responseStatus: 'error', error: err });
-	});
-});
-app.get('/api/data', function(req, res) {
+app.get('/api/saved', function(req, res) {
 	if(req.session && req.session.oauth) {
+		reddit.refresh(req.session.oauth.refreshToken).then(function() {
+			var posts = [];
+			when.iterate(function(slice) {
+				posts = posts.concat(slice.children);
+				return slice.next();
+			}, function(slice) {
+				return slice.empty;
+			}, function() {
+				res.send({ responseStatus: 'success', posts: posts });
+			}, reddit('/user/$username/saved').listing({
+				$username: req.session.user.name,
+				limit: 100
+			}));
+		}).catch(function(err) {
+			res.status(500).send({ responseStatus: 'error', error: err });
+		});
+		
 		res.send({ responseStatus: 'success' });
 	}
 	else {
 		res.sendStatus(401);
 	}
+});
+app.get('/auth/callback', function(req, res) {
+	var error = req.query.error;
+	var state = req.query.state;
+	var authCode = req.query.code;
+	if(error) {
+		res.status(500).send({ responseStatus: 'error', error: error });
+	}
+	reddit.auth(authCode).then(function(refreshToken) {
+		req.session.oauth = { refreshToken: refreshToken };
+		reddit('api/v1/me').get().then(function(result) {
+			req.session.user = result;
+			res.send({ responseStatus: 'success' });
+		}).catch(function(err) {
+			res.status(500).send({ responseStatus: 'error', error: err });
+		});
+	}).catch(function(err) {
+		res.status(500).send({ responseStatus: 'error', error: err });
+	});
 });
 
 ///////////////////////////
