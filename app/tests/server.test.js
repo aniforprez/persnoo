@@ -20,9 +20,9 @@ describe('the server', function() {
 });
 
 describe('unauthenticated requests', function() {
-	it('should reject when requesting data', function(done) {
+	it('should reject when requesting saved posts', function(done) {
 		request
-			.get('/api/data')
+			.get('/api/saved')
 			.expect(401)
 			.end(done);
 	});
@@ -86,8 +86,8 @@ describe('authentication', function() {
 				done();
 			});
 	});
-	it('should fetch data when logged in', function(done) {
-		var req = request.get('/api/data');
+	it('should fetch saved posts when logged in', function(done) {
+		var req = request.get('/api/saved');
 		req.cookies = Cookies;
 		req.set('Accept','application/json')
 			.expect('Content-Type', /json/)
