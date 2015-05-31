@@ -71,6 +71,8 @@ describe('authentication', function() {
 				loginUrl = url.replace('http://localhost:8080', '');
 			})
 			.run(function(err, nightmare) {
+				if(err)
+					return done(err);
 				done();
 			});
 	});
@@ -81,6 +83,8 @@ describe('authentication', function() {
 			.get(loginUrl)
 			.expect(200)
 			.end(function(err, res) {
+				if(err)
+					return done(err);
 				Cookies = res.headers['set-cookie'].pop().split(';')[0];
 				res.body.responseStatus.should.equal('success');
 				done();
@@ -93,6 +97,8 @@ describe('authentication', function() {
 			.expect('Content-Type', /json/)
 			.expect(200)
 			.end(function (err, res) {
+				if(err)
+					return done(err);
 				done();
 			});
 	});
