@@ -101,8 +101,8 @@ app.get('/auth/callback', function(req, res) {
 		res.status(500).send({ responseStatus: 'error', error: error });
 	}
 	reddit.auth(authCode).then(function(refreshToken) {
-		req.session.oauth = { refreshToken: refreshToken };
 		reddit('api/v1/me').get().then(function(result) {
+			req.session.oauth = { refreshToken: refreshToken };
 			req.session.user = result;
 			res.send({ responseStatus: 'success' });
 		}).catch(function(err) {
