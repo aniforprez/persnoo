@@ -86,6 +86,7 @@ describe('authentication', function() {
 				if(err)
 					return done(err);
 				Cookies = res.headers['set-cookie'].pop().split(';')[0];
+				console.log(Cookies);
 				res.body.responseStatus.should.equal('success');
 				done();
 			});
@@ -94,10 +95,10 @@ describe('authentication', function() {
 		var req = request.get('/api/saved');
 		req.cookies = Cookies;
 		req.set('Accept','application/json')
-			.expect('Content-Type', /json/)
 			.expect(200)
+			.expect('Content-Type', /json/)
 			.end(function (err, res) {
-				if(err)
+				if(err) 
 					return done(err);
 				done();
 			});

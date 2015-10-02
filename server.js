@@ -34,7 +34,8 @@ var reddit = new snoocore({
 		key: 'R1WLYGcNacErUg',
 		secret: 'zn-I4l6AS-aTjF8oXBhR_2ykNjk',
 		redirectUri: 'http://localhost:8080/auth/callback',
-		scope: ['history']
+		scope: ['history', 'identity'],
+		throttle: 0
 	}
 });
 
@@ -70,24 +71,23 @@ app.get('/api/logout', function(req, res) {
 });
 app.get('/api/saved', function(req, res) {
 	if(req.session && req.session.oauth) {
+		var posts = [];
 		reddit.refresh(req.session.oauth.refreshToken).then(function() {
-			var posts = [];
 			when.iterate(function(slice) {
 				posts = posts.concat(slice.children);
 				return slice.next();
 			}, function(slice) {
 				return slice.empty;
 			}, function() {
-				res.send({ responseStatus: 'success', posts: posts });
-			}, reddit('/user/$username/saved').listing({
-				$username: req.session.user.name,
+				return posts;
+			}, reddit('/user/' + req.session.user.name + '/saved.json').listing({
 				limit: 100
-			}));
-		}).catch(function(err) {
-			res.status(500).send({ responseStatus: 'error', error: err });
+			})).then(function() {
+				res.send({ responseStatus: 'success', posts: posts });
+			}).catch(function(err) {
+				res.status(500).send({ responseStatus: 'error', error: err });
+			});
 		});
-		
-		res.send({ responseStatus: 'success' });
 	}
 	else {
 		res.sendStatus(401);
@@ -97,17 +97,17 @@ app.get('/auth/callback', function(req, res) {
 	var error = req.query.error;
 	var state = req.query.state;
 	var authCode = req.query.code;
+	var token = '';
 	if(error) {
 		res.status(500).send({ responseStatus: 'error', error: error });
 	}
 	reddit.auth(authCode).then(function(refreshToken) {
-		reddit('api/v1/me').get().then(function(result) {
-			req.session.oauth = { refreshToken: refreshToken };
-			req.session.user = result;
-			res.send({ responseStatus: 'success' });
-		}).catch(function(err) {
-			res.status(500).send({ responseStatus: 'error', error: err });
-		});
+		token = refreshToken;
+		return reddit('/api/v1/me').get();
+	}).then(function(result) {
+		req.session.oauth = { refreshToken: token };
+		req.session.user = result;
+		res.send({ responseStatus: 'success' });
 	}).catch(function(err) {
 		res.status(500).send({ responseStatus: 'error', error: err });
 	});
