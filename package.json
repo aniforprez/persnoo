@@ -4,7 +4,7 @@
   "description": "Search through your saved, liked, commented and hidden reddit posts",
   "main": "server.js",
   "scripts": {
-    "test": "grunt test"
+    
   },
   "author": "Anirudh Sylendranath",
   "license": "MIT",
